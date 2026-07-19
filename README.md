@@ -83,8 +83,8 @@ The final trained pipeline and cleaned dataset are serialized with `pickle`:
 
 | File | Contents |
 |---|---|
-| `RidgeModel.pkl` | Full trained pipeline (One-Hot Encoding + Scaling + Ridge Regression model) |
-| `data.pkl` | Cleaned housing dataframe, used to populate dropdown/input options (locations, BHK, etc.) in the app |
+| `RidgeModel.joblib` | Full trained pipeline (One-Hot Encoding + Scaling + Ridge Regression model) |
+| `data.joblib` | Cleaned housing dataframe, used to populate dropdown/input options (locations, BHK, etc.) in the app |
 
 The Streamlit app loads both files at startup — `data.pkl` to populate the input fields, and `RidgeModel.pkl` to make predictions directly from raw input (no manual encoding needed, since it's baked into the pipeline).
 
@@ -95,7 +95,7 @@ The Streamlit app loads both files at startup — `data.pkl` to populate the inp
 - **scikit-learn** — `OneHotEncoder`, `StandardScaler`, `ColumnTransformer`, `LinearRegression`, `Lasso`, `Ridge`, `Pipeline`
 - **matplotlib / seaborn** — exploratory data analysis
 - **Streamlit** — web app frontend
-- **pickle** — model/data serialization
+- **joblib** — model/data serialization
 
 ## 📁 Project Structure
 
@@ -103,8 +103,8 @@ The Streamlit app loads both files at startup — `data.pkl` to populate the inp
 
 ├── app.py                         # Streamlit frontend
 ├── house_price_predictor.ipynb    # Data cleaning, EDA & model-building notebook
-├── RidgeModel.pkl                 # Serialized trained pipeline (encoder + scaler + Ridge model)
-├── data.pkl                       # Serialized cleaned housing dataframe (for input options)
+├── RidgeModel.joblib                 # Serialized trained pipeline (encoder + scaler + Ridge model)
+├── data.joblib                       # Serialized cleaned housing dataframe (for input options)
 ├── dataset/                       # Raw dataset (Bengaluru_House_Data.csv)
 ├── Results/                       # Screenshots of app results
 ├── requirements.txt               # Python dependencies

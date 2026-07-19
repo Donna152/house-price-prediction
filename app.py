@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
-import pickle
+import joblib  
 
 # 1. Load the model and the full cleaned dataframe
 try:
-    model = pickle.load(open('RidgeModel.pkl', 'rb'))
-    df = pickle.load(open('data.pkl', 'rb'))  # Now loading the full dataframe
+    # Loading using joblib and the .joblib file extensions
+    model = joblib.load('RidgeModel.joblib')
+    df = joblib.load('data.joblib')
 except Exception as e:
     st.error(f"Error loading model or data: {e}")
     st.stop()
