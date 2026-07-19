@@ -2,34 +2,43 @@ import streamlit as st
 import pandas as pd
 import pickle
 
-# 1. Load the pre-trained pipeline (Model + Preprocessing)
-with open('RidgeModel.pkl', 'rb') as f:
-    model = pickle.load(f)
+# 1. Load the model and the full cleaned dataframe
+try:
+    model = pickle.load(open('RidgeModel.pkl', 'rb'))
+    df = pickle.load(open('data.pkl', 'rb'))  # Now loading the full dataframe
+except Exception as e:
+    st.error(f"Error loading model or data: {e}")
+    st.stop()
 
-# 2. UI Layout
+# 2. Page Title
 st.title("Welcome to Bangalore House Price Predictor")
-st.write("Want to predict the price of a new House in Bangalore? Try filling the details below:")
 
+# 3. Dynamic Inputs
 col1, col2 = st.columns(2)
 
 with col1:
-    # Use the locations list from your training data if you saved it in data.pkl
-    with open('data.pkl', 'rb') as f:
-        locations = pickle.load(f)
-    location = st.selectbox("Select the Location:", locations)
+    # Pulling unique locations dynamically from the dataframe
+    location = st.selectbox("Select the Location:", sorted(df['location'].unique()))
     bath = st.number_input("Enter Number of Bathrooms:", min_value=1, step=1)
 
 with col2:
     bhk = st.number_input("Enter BHK:", min_value=1, step=1)
     sqft = st.number_input("Enter Total Square Feet:", min_value=100.0)
 
-# 3. Simple Prediction
+# 4. Prediction Logic
 if st.button("Predict Price"):
-    # Create a DataFrame with the exact column names expected by your pipeline
-    input_data = pd.DataFrame([[location, sqft, bath, bhk]],
-                              columns=['location', 'total_sqft', 'bath', 'bhk'])
+    try:
+        # Create input DataFrame with columns matching your training data
+        input_data = pd.DataFrame(
+            [[location, sqft, bath, bhk]],
+            columns=['location', 'total_sqft', 'bath', 'bhk']
+        )
 
-    # The pipeline handles scaling and encoding automatically
-    prediction = model.predict(input_data)[0]
+        # Predict
+        prediction = model.predict(input_data)
 
-    st.success(f"The estimated price is: {prediction:.2f} Lakhs")
+        # Display result
+        st.success(f"The estimated price is: {prediction[0]:,.2f} Lakhs")
+
+    except Exception as e:
+        st.error(f"Error during prediction: {e}")
