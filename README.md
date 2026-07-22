@@ -83,8 +83,8 @@ The final trained pipeline and cleaned dataset are serialized with `pickle`:
 
 | File | Contents |
 |---|---|
-| `RidgeModel.joblib` | Full trained pipeline (One-Hot Encoding + Scaling + Ridge Regression model) |
-| `data.joblib` | Cleaned housing dataframe, used to populate dropdown/input options (locations, BHK, etc.) in the app |
+| `RidgeModel.pickle` | Full trained pipeline (One-Hot Encoding + Scaling + Ridge Regression model) |
+| `data.pickle` | Cleaned housing dataframe, used to populate dropdown/input options (locations, BHK, etc.) in the app |
 
 The Streamlit app loads both files at startup — `data.pkl` to populate the input fields, and `RidgeModel.pkl` to make predictions directly from raw input (no manual encoding needed, since it's baked into the pipeline).
 
@@ -95,7 +95,7 @@ The Streamlit app loads both files at startup — `data.pkl` to populate the inp
 - **scikit-learn** — `OneHotEncoder`, `StandardScaler`, `ColumnTransformer`, `LinearRegression`, `Lasso`, `Ridge`, `Pipeline`
 - **matplotlib / seaborn** — exploratory data analysis
 - **Streamlit** — web app frontend
-- **joblib** — model/data serialization
+- **pickle** — model/data serialization
 
 ## 📁 Project Structure
 
@@ -103,13 +103,11 @@ The Streamlit app loads both files at startup — `data.pkl` to populate the inp
 
 ├── app.py                         # Streamlit frontend
 ├── house_price_predictor.ipynb    # Data cleaning, EDA & model-building notebook
-├── RidgeModel.joblib                 # Serialized trained pipeline (encoder + scaler + Ridge model)
-├── data.joblib                       # Serialized cleaned housing dataframe (for input options)
+├── RidgeModel.pickle                 # Serialized trained pipeline (encoder + scaler + Ridge model)
+├── data.pickle                      # Serialized cleaned housing dataframe (for input options)
 ├── dataset/                       # Raw dataset (Bengaluru_House_Data.csv)
 ├── Results/                       # Screenshots of app results
 ├── requirements.txt               # Python dependencies
-├── setup.sh                       # Streamlit config setup
-├── Procfile                       # Process file for deployment
 ├── .gitignore
 └── README.md
 ```

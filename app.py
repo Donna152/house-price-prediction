@@ -1,45 +1,56 @@
 import streamlit as st
-import pandas as pd
-import joblib  
+import pickle
+import numpy as np
 
-# 1. Load the model and the full cleaned dataframe
+# 1. Load the model and dataframe using correct file names and binary read mode
 try:
-    # Loading using joblib and the .joblib file extensions
-    model = joblib.load('RidgeModel.joblib')
-    df = joblib.load('data.joblib')
+    pipe = pickle.load(open('RidgeModel.pkl', 'rb'))
+    df = pickle.load(open('data.pkl', 'rb'))
 except Exception as e:
     st.error(f"Error loading model or data: {e}")
     st.stop()
 
 # 2. Page Title
-st.title("Welcome to Bangalore House Price Predictor")
+st.title("Laptop Price Predictor")
 
-# 3. Dynamic Inputs
-col1, col2 = st.columns(2)
-
-with col1:
-    # Pulling unique locations dynamically from the dataframe
-    location = st.selectbox("Select the Location:", sorted(df['location'].unique()))
-    bath = st.number_input("Enter Number of Bathrooms:", min_value=1, step=1)
-
-with col2:
-    bhk = st.number_input("Enter BHK:", min_value=1, step=1)
-    sqft = st.number_input("Enter Total Square Feet:", min_value=100.0)
+# 3. Dynamic Inputs for Laptop Specifications
+company = st.selectbox('Brand', df['Company'].unique())
+type = st.selectbox('Type', df['TypeName'].unique())
+ram = st.selectbox('RAM (in GB)', [2, 4, 6, 8, 12, 16, 24, 32, 64])
+weight = st.number_input('Weight of the Laptop (kg)')
+touchscreen = st.selectbox('Touchscreen', ['No', 'Yes'])
+ips = st.selectbox('IPS', ['No', 'Yes'])
+screen_size = st.slider('Screen size in inches', 10.0, 18.0, 13.0)
+resolution = st.selectbox('Screen Resolution',
+                          ['1920x1080', '1366x768', '1600x900', '3840x2160', '3200x1800', '2880x1800', '2560x1600',
+                           '2560x1440', '2304x1440'])
+cpu = st.selectbox('CPU', df['Cpu_Brand'].unique())
+hdd = st.selectbox('HDD (in GB)', [0, 128, 256, 512, 1024, 2048])
+ssd = st.selectbox('SSD (in GB)', [0, 8, 128, 256, 512, 1024])
+gpu = st.selectbox('GPU', df['Gpu_Brand'].unique())
+os = st.selectbox('OS', df['OS'].unique())
 
 # 4. Prediction Logic
-if st.button("Predict Price"):
+if st.button('Predict Price'):
     try:
-        # Create input DataFrame with columns matching your training data
-        input_data = pd.DataFrame(
-            [[location, sqft, bath, bhk]],
-            columns=['location', 'total_sqft', 'bath', 'bhk']
-        )
+        # Format binary inputs
+        ts_val = 1 if touchscreen == 'Yes' else 0
+        ips_val = 1 if ips == 'Yes' else 0
 
-        # Predict
-        prediction = model.predict(input_data)
+        # Calculate PPI from resolution and screen size
+        X_res = int(resolution.split('x')[0])
+        Y_res = int(resolution.split('x')[1])
+        ppi = ((X_res ** 2) + (Y_res ** 2)) ** 0.5 / screen_size
+
+        # Create query array matching your model pipeline expectations
+        query = np.array([company, type, ram, weight, ts_val, ips_val, ppi, cpu, hdd, ssd, gpu, os], dtype=object)
+        query = query.reshape(1, 12)
+
+        # Predict price (reversing log transformation if applicable)
+        predicted_price = int(np.exp(pipe.predict(query)[0]))
 
         # Display result
-        st.success(f"The estimated price is: {prediction[0]:,.2f} Lakhs")
+        st.success(f"The estimated price of this configuration is: €{predicted_price:,}")
 
     except Exception as e:
         st.error(f"Error during prediction: {e}")
