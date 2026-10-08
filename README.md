@@ -71,9 +71,9 @@ Three regression algorithms were trained and compared, each wrapped in an identi
 
 | Model | R² Score |
 |---|---|
-| Linear Regression (no regularization) | 0.8012 |
-| Lasso Regression | **0.8012** |
-| **Ridge Regression** | **0.8012** |
+| Linear Regression (no regularization) | **0.8137** |
+| Lasso Regression | **0.81374** |
+| **Ridge Regression** | **0.81578** |
 
 **Ridge Regression** was selected as the final model — its L2 regularization helps stabilize coefficients across the many one-hot encoded location features without sacrificing predictive accuracy.
 
