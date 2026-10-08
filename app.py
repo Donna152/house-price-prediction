@@ -1,56 +1,61 @@
 import streamlit as st
 import pickle
-import numpy as np
+import pandas as pd
 
-# 1. Load the model and dataframe using correct file names and binary read mode
-try:
-    pipe = pickle.load(open('RidgeModel.pkl', 'rb'))
+# 1. Page Configuration
+st.set_page_config(
+    page_title="Bangalore House Price Predictor",
+    page_icon="🏠",
+    layout="centered"
+)
+
+# 2. Load the trained model and data
+@st.cache_resource
+def load_assets():
+    model = pickle.load(open('RidgeModel.pkl', 'rb'))
     df = pickle.load(open('data.pkl', 'rb'))
-except Exception as e:
-    st.error(f"Error loading model or data: {e}")
-    st.stop()
+    return model, df
 
-# 2. Page Title
-st.title("Laptop Price Predictor")
+model, df = load_assets()
 
-# 3. Dynamic Inputs for Laptop Specifications
-company = st.selectbox('Brand', df['Company'].unique())
-type = st.selectbox('Type', df['TypeName'].unique())
-ram = st.selectbox('RAM (in GB)', [2, 4, 6, 8, 12, 16, 24, 32, 64])
-weight = st.number_input('Weight of the Laptop (kg)')
-touchscreen = st.selectbox('Touchscreen', ['No', 'Yes'])
-ips = st.selectbox('IPS', ['No', 'Yes'])
-screen_size = st.slider('Screen size in inches', 10.0, 18.0, 13.0)
-resolution = st.selectbox('Screen Resolution',
-                          ['1920x1080', '1366x768', '1600x900', '3840x2160', '3200x1800', '2880x1800', '2560x1600',
-                           '2560x1440', '2304x1440'])
-cpu = st.selectbox('CPU', df['Cpu_Brand'].unique())
-hdd = st.selectbox('HDD (in GB)', [0, 128, 256, 512, 1024, 2048])
-ssd = st.selectbox('SSD (in GB)', [0, 8, 128, 256, 512, 1024])
-gpu = st.selectbox('GPU', df['Gpu_Brand'].unique())
-os = st.selectbox('OS', df['OS'].unique())
+# 3. App Header
+st.markdown("<h1 style='text-align: center;'>Welcome to Bangalore House Price Predictor</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: gray;'>Want to predict the price of a new House in Bangalore? Try filling the details below:</p>", unsafe_allow_html=True)
+st.write("")
 
-# 4. Prediction Logic
-if st.button('Predict Price'):
+# 4. Extract unique locations for the dropdown
+locations = sorted(df['location'].unique())
+
+# 5. Create a clean 2-column layout for input fields
+col1, col2 = st.columns(2)
+
+with col1:
+    location = st.selectbox('Select the Location:', locations)
+    bath = st.number_input('Enter Number of Bathrooms:', min_value=1, max_value=20, value=2, step=1)
+
+with col2:
+    bhk = st.number_input('Enter BHK:', min_value=1, max_value=15, value=2, step=1)
+    total_sqft = st.number_input('Enter Total Square Feet:', min_value=300.0, max_value=50000.0, value=1200.0, step=50.0)
+
+st.write("")
+st.write("")
+
+# 6. Prediction Button & Logic
+if st.button('Predict Price', use_container_width=True):
+    # Create a DataFrame matching the training feature names and types
+    input_data = pd.DataFrame({
+        'location': [location],
+        'total_sqft': [float(total_sqft)],
+        'bath': [int(bath)],
+        'bhk': [int(bhk)]
+    })
+    
     try:
-        # Format binary inputs
-        ts_val = 1 if touchscreen == 'Yes' else 0
-        ips_val = 1 if ips == 'Yes' else 0
-
-        # Calculate PPI from resolution and screen size
-        X_res = int(resolution.split('x')[0])
-        Y_res = int(resolution.split('x')[1])
-        ppi = ((X_res ** 2) + (Y_res ** 2)) ** 0.5 / screen_size
-
-        # Create query array matching your model pipeline expectations
-        query = np.array([company, type, ram, weight, ts_val, ips_val, ppi, cpu, hdd, ssd, gpu, os], dtype=object)
-        query = query.reshape(1, 12)
-
-        # Predict price (reversing log transformation if applicable)
-        predicted_price = int(np.exp(pipe.predict(query)[0]))
-
-        # Display result
-        st.success(f"The estimated price of this configuration is: €{predicted_price:,}")
-
+        # Predict using the loaded pipeline/model
+        prediction = model.predict(input_data)[0]
+        
+        # Display the result styled cleanly matching the reference image format
+        st.markdown(f"<h3 style='text-align: center; color: #2e7d32;'>Prediction: ₹{prediction:,.2f}</h3>", unsafe_allow_html=True)
+    
     except Exception as e:
-        st.error(f"Error during prediction: {e}")
+        st.error(f"An error occurred during prediction: {e}")
